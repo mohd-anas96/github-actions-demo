@@ -1,14 +1,30 @@
-script: |
-  if [ ! -d "$HOME/app" ]; then
-    git clone https://github.com/mohd-anas96/github-actions-demo.git $HOME/app
-  fi
+name: CI/CD Deploy Flask App
 
-  cd $HOME/app
+on:
+  push:
 
-  git pull
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-  pip3 install --user -r requirements.txt
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            if [ ! -d "$HOME/app" ]; then
+              git clone https://github.com/mohd-anas96/github-actions-demo.git $HOME/app
+            fi
 
-  pkill -f app.py || true
+            cd $HOME/app
 
-  nohup python3 app.py > output.log 2>&1 &
+            git pull
+
+            pip3 install --user -r requirements.txt
+
+            pkill -f app.py || true
+
+            nohup python3 app.py > output.log 2>&1 &
